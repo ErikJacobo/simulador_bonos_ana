@@ -45,25 +45,42 @@ st.markdown("<h2 style='text-align: center;'>ANA Seguros 2025</h2>", unsafe_allo
 
 # Formulario
 nombre_agente = st.text_input("Nombre del Agente")
-tipo_bono = st.selectbox("Tipo de Bono", ["Autos"])  # Manténlo aunque solo haya uno, por formato estándar
-prod_2024 = st.number_input("Producción 2024 (en pesos)", min_value=0.0, step=1000.0, format="%.2f")
-prod_2025 = st.number_input("Producción 2025 (en pesos)", min_value=0.0, step=1000.0, format="%.2f")
+tipo_bono = st.selectbox("Tipo de Bono", ["Autos"])  # Estándar
+
+# Campos corregidos con placeholder como en tu interfaz HDI
+prod_2024 = st.number_input(
+    "Producción 2024 ($)", 
+    min_value=0.0, 
+    step=1000.0, 
+    format="%.2f", 
+    placeholder="Ej. $1,000,000.00"
+)
+
+prod_2025 = st.number_input(
+    "Producción 2025 ($)", 
+    min_value=0.0, 
+    step=1000.0, 
+    format="%.2f", 
+    placeholder="Ej. $2,000,000.00"
+)
+
 siniestralidad = st.number_input("Siniestralidad (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.2f")
 
+# Botón de cálculo
 if st.button("Calcular Bonos"):
     crecimiento_pct = ((prod_2025 - prod_2024) / prod_2024) * 100 if prod_2024 > 0 else 0
 
-    # Cálculo Producción
+    # Calcular Producción
     prod_pct, prod_msg, prod_notas = calcular_bono_produccion(prod_2025, crecimiento_pct)
     bono_produccion = prod_2025 * prod_pct
 
-    # Cálculo Crecimiento
+    # Calcular Crecimiento
     crecimiento, crec_pct, crec_msg, crec_notas = calcular_bono_crecimiento(prod_2024, prod_2025, siniestralidad)
     bono_crecimiento = (prod_2025 - prod_2024) * crec_pct
 
     total_bono = bono_produccion + bono_crecimiento
 
-    # Resultados
+    # Mostrar resultados
     st.markdown(f"### Resultado para **{nombre_agente}**")
     st.markdown("#### 📊 Datos Ingresados:")
     st.markdown(f"- Producción 2024: **${prod_2024:,.2f}**")
