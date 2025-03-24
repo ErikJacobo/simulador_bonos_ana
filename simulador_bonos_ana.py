@@ -1,5 +1,11 @@
 import streamlit as st
 
+def safe_float(val):
+    try:
+        return float(val.replace(",", "").replace("$", "").strip())
+    except:
+        return 0.0
+
 def calcular_bono_produccion(prima_cobrada, crecimiento_pct):
     notas = []
     if crecimiento_pct < 5:
@@ -43,44 +49,35 @@ st.set_page_config(page_title="Simulador ANA 2025", layout="centered")
 st.markdown("<h1 style='text-align: center;'>Simulador de Bonos</h1>", unsafe_allow_html=True)
 st.markdown("<h2 style='text-align: center;'>ANA Seguros 2025</h2>", unsafe_allow_html=True)
 
-# Formulario
+# Formulario visual
 nombre_agente = st.text_input("Nombre del Agente")
-tipo_bono = st.selectbox("Tipo de Bono", ["Autos"])  # Estándar
+tipo_bono = st.selectbox("Tipo de Bono", ["Autos"])  # Estandarizado
 
-# Campos corregidos con placeholder como en tu interfaz HDI
-prod_2024 = st.number_input(
-    "Producción 2024 ($)", 
-    min_value=0.0, 
-    step=1000.0, 
-    format="%.2f", 
-    placeholder="Ej. $1,000,000.00"
-)
+# 🎯 Aquí está el cambio importante: usamos st.text_input con placeholder visual
+prod_2024_text = st.text_input("Producción 2024 ($)", placeholder="Ej. $1,000,000.00")
+prod_2025_text = st.text_input("Producción 2025 ($)", placeholder="Ej. $2,000,000.00")
 
-prod_2025 = st.number_input(
-    "Producción 2025 ($)", 
-    min_value=0.0, 
-    step=1000.0, 
-    format="%.2f", 
-    placeholder="Ej. $2,000,000.00"
-)
+# Convertimos el texto a número
+prod_2024 = safe_float(prod_2024_text)
+prod_2025 = safe_float(prod_2025_text)
 
+# Siniestralidad sí se mantiene como number_input
 siniestralidad = st.number_input("Siniestralidad (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.2f")
 
-# Botón de cálculo
 if st.button("Calcular Bonos"):
     crecimiento_pct = ((prod_2025 - prod_2024) / prod_2024) * 100 if prod_2024 > 0 else 0
 
-    # Calcular Producción
+    # Cálculo Producción
     prod_pct, prod_msg, prod_notas = calcular_bono_produccion(prod_2025, crecimiento_pct)
     bono_produccion = prod_2025 * prod_pct
 
-    # Calcular Crecimiento
+    # Cálculo Crecimiento
     crecimiento, crec_pct, crec_msg, crec_notas = calcular_bono_crecimiento(prod_2024, prod_2025, siniestralidad)
     bono_crecimiento = (prod_2025 - prod_2024) * crec_pct
 
     total_bono = bono_produccion + bono_crecimiento
 
-    # Mostrar resultados
+    # Mostrar Resultados
     st.markdown(f"### Resultado para **{nombre_agente}**")
     st.markdown("#### 📊 Datos Ingresados:")
     st.markdown(f"- Producción 2024: **${prod_2024:,.2f}**")
