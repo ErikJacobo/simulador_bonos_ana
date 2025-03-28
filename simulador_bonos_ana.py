@@ -8,7 +8,6 @@ def safe_float(val):
         return 0.0
 
 def calcular_bono_produccion(prima_cobrada, crecimiento_pct):
-    notas = []
     if crecimiento_pct < 15:
         return 0, "❌ No se cumple el crecimiento mínimo del 15%.", ["Se requiere al menos un 15% de crecimiento para aplicar al bono de producción."]
     if prima_cobrada < 200000:
@@ -28,62 +27,56 @@ def calcular_bono_produccion(prima_cobrada, crecimiento_pct):
 
 def calcular_bono_crecimiento(prod_2024, prod_2025, siniestralidad):
     crecimiento = ((prod_2025 - prod_2024) / prod_2024) * 100 if prod_2024 > 0 else 0
-    notas = []
     if crecimiento <= 20:
         return crecimiento, 0, "❌ Crecimiento insuficiente para aplicar bono.", ["El crecimiento debe superar el 20% para aplicar bono."]
     elif crecimiento > 40:
         if siniestralidad < 65:
             return crecimiento, 0.05, "✅ Aplica bono del 5%.", []
         else:
-            return crecimiento, 0.025, "✅ Aplica bono del 2.5%.", ["⚠ Siniestralidad mayor a 65%. Se reduce el porcentaje del bono."]
+            return crecimiento, 0.025, "✅ Aplica bono del 2.5%.", ["⚠️ Siniestralidad mayor a 65%. Se reduce el porcentaje del bono."]
     elif crecimiento > 30:
         if siniestralidad < 65:
             return crecimiento, 0.04, "✅ Aplica bono del 4%.", []
         else:
-            return crecimiento, 0.02, "✅ Aplica bono del 2%.", ["⚠ Siniestralidad mayor a 65%. Se reduce el porcentaje del bono."]
+            return crecimiento, 0.02, "✅ Aplica bono del 2%.", ["⚠️ Siniestralidad mayor a 65%. Se reduce el porcentaje del bono."]
     else:
         if siniestralidad < 65:
             return crecimiento, 0.03, "✅ Aplica bono del 3%.", []
         else:
-            return crecimiento, 0.015, "✅ Aplica bono del 1.5%.", ["⚠ Siniestralidad mayor a 65%. Se reduce el porcentaje del bono."]
+            return crecimiento, 0.015, "✅ Aplica bono del 1.5%.", ["⚠️ Siniestralidad mayor a 65%. Se reduce el porcentaje del bono."]
 
-# Página
+# Configuración de la página
 st.set_page_config(page_title="Simulador ANA 2025", layout="centered")
 
-# Logo + encabezado
+# Encabezado con logo
 col1, col2 = st.columns([0.8, 0.2])
 with col1:
     st.markdown("<h1 style='text-align: left;'>Simulador de Bonos</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: left;'>ANA Seguros 2025</h2>", unsafe_allow_html=True)
 with col2:
-    logo = Image.open("link logo.jpg")  # Usa tu imagen cargada
+    logo = Image.open("link logo.jpg")
     st.image(logo, width=100)
 
-# Formulario
+# Formulario de entrada
 nombre_agente = st.text_input("Nombre del Agente")
 tipo_bono = st.selectbox("Tipo de Bono", ["Autos"])
-
 prod_2024_text = st.text_input("Producción 2024 ($)", placeholder="Ej. $1,000,000.00")
 prod_2025_text = st.text_input("Producción 2025 ($)", placeholder="Ej. $2,000,000.00")
 prod_2024 = safe_float(prod_2024_text)
 prod_2025 = safe_float(prod_2025_text)
-
 siniestralidad = st.number_input("Siniestralidad (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.2f")
 
+# Cálculo de bonos
 if st.button("Calcular Bonos"):
     crecimiento_pct = ((prod_2025 - prod_2024) / prod_2024) * 100 if prod_2024 > 0 else 0
-
-    # Cálculos
     prod_pct, prod_msg, prod_notas = calcular_bono_produccion(prod_2025, crecimiento_pct)
     bono_produccion = prod_2025 * prod_pct
-
     crecimiento, crec_pct, crec_msg, crec_notas = calcular_bono_crecimiento(prod_2024, prod_2025, siniestralidad)
     bono_crecimiento = (prod_2025 - prod_2024) * crec_pct
-
     total_bono = bono_produccion + bono_crecimiento
 
-    # Resultados
-    st.markdown(f"### Resultado para **{nombre_agente}**")
+    # Resultados con emojis
+    st.markdown(f"### 📊 Resultado para **{nombre_agente}**")
     st.markdown("#### 📊 Datos Ingresados:")
     st.markdown(f"- Producción 2024: **${prod_2024:,.2f}**")
     st.markdown(f"- Producción 2025: **${prod_2025:,.2f}**")
@@ -95,12 +88,12 @@ if st.button("Calcular Bonos"):
     st.markdown(f"- Bono de Crecimiento: **{crec_pct*100:.2f}%** → **${bono_crecimiento:,.2f}** → {crec_msg}")
     st.markdown(f"### 🧾 Total del Bono: **${total_bono:,.2f}**")
 
-    # Notas
     if prod_notas or crec_notas:
         st.markdown("#### 📌 Notas Aclaratorias:")
         for nota in prod_notas + crec_notas:
             st.markdown(f"- {nota}")
 
+    # Exclusiones y condiciones
     st.markdown("---")
     st.markdown("#### ❌ Exclusiones ANA Seguros:")
     st.markdown("- Negocios con fórmula de dividendos.")
